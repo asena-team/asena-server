@@ -5,9 +5,9 @@ import com.syntax.asena.Build.Security
 import com.syntax.asena.auth.AuthenticationEntryPoint
 import com.syntax.asena.auth.AuthenticationFilter
 import com.syntax.asena.auth.UniversalAccessDeniedHandler
-import com.syntax.asena.properties.SecurityProperties
 import com.syntax.asena.service.UserDetailsService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -31,18 +31,31 @@ class SecurityConfig : WebSecurityConfigurerAdapter(){
     @Autowired
     private lateinit var userDetailsService: UserDetailsService
 
+    @Value("\${springdoc.api-docs.path}")
+    private lateinit var apiDocsPath: String
+
+    @Value("\${springdoc.swagger-ui.path}")
+    private lateinit var swaggerUIPath: String
+
     override fun configure(http: HttpSecurity){
         http
-                .csrf()
-                .disable()
-                .authorizeRequests().antMatchers("/api/v${Build.VersionCodes.CUR_DEVELOPMENT}/developer/${Security.ENDPOINT}")
-                .permitAll().anyRequest().authenticated()
-                .and()
-                .exceptionHandling().accessDeniedHandler(accessDeniedHandler()).authenticationEntryPoint(authenticationEntryPoint())
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .csrf()
+            .disable()
+            .authorizeRequests()
+            .antMatchers(
+                "/api/v${Build.VersionCodes.CUR_DEVELOPMENT}/developer/${Security.ENDPOINT}",
+                "/swagger-ui/**", // Redirected Swagger UI
+                swaggerUIPath, // Swagger UI
+                "${apiDocsPath}/**" // Open API Docs
+            )
+            .permitAll()
+            .anyRequest().authenticated()
+            .and()
+            .exceptionHandling().accessDeniedHandler(accessDeniedHandler()).authenticationEntryPoint(authenticationEntryPoint())
+            .and()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
     }
 
     override fun configure(auth: AuthenticationManagerBuilder){
