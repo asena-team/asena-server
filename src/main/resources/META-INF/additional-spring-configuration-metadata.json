@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "com.syntax.asena.secret.key",
+      "type": "java.lang.String",
+      "description": "256 Bit String for JWT Tokens."
+    }
+  ]
+}
